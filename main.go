@@ -26,6 +26,7 @@ kcn:
     KCN_SCRIPT    : a script path. run script.
 	
 `)
+		os.Exit(0)
 	}
 	if err := initCheckFile(); err != nil {
 		log.Fatal(err)
