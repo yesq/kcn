@@ -1,0 +1,8 @@
+workspace:
+  base: /go
+  path: src/kcn
+pipeline:
+  build:
+    image: golang:1.9
+    commands:
+        - go build -o kcn --ldflags '-linkmode external -extldflags "-static"'
