@@ -5,4 +5,4 @@ pipeline:
   build:
     image: golang:1.9
     commands:
-        - go build -o kcn --ldflags '-linkmode external -extldflags "-static"'
+        - go build -o kcn_linux_amd64  --ldflags '-linkmode external -extldflags "-static"'

@@ -27,3 +27,28 @@ echo "echo 'hello KCN_SCRIPT' && pwd" > sh.sh
 ./kcn
 echo $?
 ```
+
+### Use with k8s
+
+可以把二进制放在应用容器里。也可以在 pod 里另起一个容器。
+
+```
+    spec:
+      containers:
+      - name: nginx
+        image: kcn:v0.0.1
+        env:
++       - name: KCN_CHECKFILE
++         value: "/cfg"
+        ports:
+        - containerPort: 80
+        command: ["/bin/sh"]
+        #args: ["-c", "echo '123' > /cfg && sleep 10 && echo 'abc' > /cfg && sleep 100000"]
+        args: ["-c", "echo '123' > /cfg && sleep 100000"]
++        livenessProbe:
++          exec:
++            command:
++            - kcn
++          initialDelaySeconds: 5
++          periodSeconds: 5
+```
