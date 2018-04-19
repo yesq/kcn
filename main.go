@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 )
 
-var path string
+var checkFilePath string
 var script string
 var aFile *CheckFile
 var ok bool
@@ -49,13 +49,13 @@ func initScript() error {
 }
 
 func initCheckFile() error {
-	path = os.Getenv("KCN_CHECKFILE")
+	checkFilePath = os.Getenv("KCN_CHECKFILE")
 	_, err := os.Stat(dataJSON)
 	if os.IsNotExist(err) {
 		log.Println("First run. Save file info.")
 		// 第一次运行，没有保存文件信息
 		// 读取文件信息
-		newFile, err := NewCheckFile(path, true)
+		newFile, err := NewCheckFile(checkFilePath, true)
 		if newFile == nil {
 			// 没有指定文件
 			log.Println("No file")
@@ -73,7 +73,7 @@ func initCheckFile() error {
 		return nil
 	}
 	log.Println("Not first run. Load info.")
-	aFile, err = NewCheckFile(path, false)
+	aFile, err = NewCheckFile(checkFilePath, false)
 	err = Load(dataJSON, aFile)
 	if err != nil {
 		return fmt.Errorf("Can not load info : %v", err)
@@ -90,7 +90,7 @@ func main() {
 		if b == false {
 			log.Fatal("file changed")
 		}
-		log.Printf("%v file same\n", path)
+		log.Printf("%v file same\n", checkFilePath)
 		ok = true
 	}
 
@@ -104,7 +104,7 @@ func main() {
 			ok = true
 		}
 	}
-	if ok == false {
+	if ok == false && checkFilePath == "" {
 		log.Fatal("No one check exec. Please set one at least")
 	}
 }

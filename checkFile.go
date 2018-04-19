@@ -5,6 +5,8 @@ import (
 	"crypto/sha256"
 	"fmt"
 	"io/ioutil"
+	"os"
+	"path"
 )
 
 // CheckFile : a file to be checked whether changed
@@ -15,12 +17,12 @@ type CheckFile struct {
 }
 
 // NewCheckFile : New a CheckFile struct
-func NewCheckFile(path string, withSha bool) (*CheckFile, error) {
-	if path == "" {
+func NewCheckFile(filePath string, withSha bool) (*CheckFile, error) {
+	if filePath == "" {
 		return nil, fmt.Errorf("no file to check")
 	}
 	aFile := new(CheckFile)
-	aFile.Path = path
+	aFile.Path = filePath
 	if withSha == true {
 		return aFile, aFile.GenSha()
 	}
@@ -40,7 +42,7 @@ func (a *CheckFile) GenSha() error {
 }
 
 func (a *CheckFile) genSha() error {
-	b, err := ioutil.ReadFile(a.Path)
+	b, err := getModTime([]byte(a.Path))
 	if err != nil {
 		return fmt.Errorf("Can not read file %s", a.Path)
 	}
@@ -54,9 +56,38 @@ func (a CheckFile) Check() (bool, error) {
 }
 
 func (a CheckFile) check() (bool, error) {
-	b, err := ioutil.ReadFile(a.Path)
+	b, err := getModTime([]byte(a.Path))
 	if err != nil {
 		return false, err
 	}
 	return bytes.Equal(a.Sha, sha(b)), nil
+}
+
+func getModTime(filePath []byte) ([]byte, error) {
+	filePathString := string(filePath)
+	info, err := os.Stat(filePathString)
+	if err != nil {
+		return nil, err
+	}
+	allTimeBytes, err := info.ModTime().MarshalText()
+	if err != nil {
+		return nil, err
+	}
+	// file 是文件。返回修改时间
+	if info.IsDir() == false {
+		return allTimeBytes, nil
+	}
+	// file 是文件夹。返回子文件的修改时间。递归。
+	files, err := ioutil.ReadDir(filePathString)
+	if err != nil {
+		return nil, err
+	}
+	for _, f := range files {
+		timeBytes, err := getModTime([]byte(path.Join(filePathString, f.Name())))
+		if err != nil {
+			return nil, err
+		}
+		allTimeBytes = append(allTimeBytes, timeBytes...)
+	}
+	return allTimeBytes, nil
 }
